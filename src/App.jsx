@@ -1,106 +1,113 @@
-import { Component } from "react";
-import css from "./app.module.css";
+import css from "./App.module.css";
+import { useState } from 'react';
+import { useEffect } from "react";
 import { INITIAL_STATE } from "./constants/initial-image-finder";
-import { Searchbar } from "./components/searchbar/searchbar";
-import { Loader } from "./components/loader/loader";
+import { Searchbar } from "./components/Searchbar/Searchbar";
+import { Loader } from "./components/Loader/Loader";
 import { fetchImages } from "./api/pixabay-api";
-import { ImageGallery } from "./components/imageGallery/imageGallery";
-import { Button } from "./components/button/button";
-import { Modal } from "./components/modal/modal";
+import { ImageGallery } from "./components/ImageGallery/ImageGallery";
+import { Button } from "./components/Button/Button";
+import { Modal } from "./components/Modal/Modal";
 
 function App() {
-  const [state, setState] = useState(INITIAL_STATE);
+  console.log('App is running...');
 
-  const setNewQuery = () => {
-    setState({
-      query: INITIAL_STATE.query,
-      images: INITIAL_STATE.images,
-      page: INITIAL_STATE.page,
-      pages: INITIAL_STATE.pages,
-      info: INITIAL_STATE.info,
-      error: INITIAL_STATE.error,
-    });
+  const [query, setQuery] = useState(INITIAL_STATE.query);
+  const [images, setImages] = useState(INITIAL_STATE.images);
+  const [page, setPage] = useState(INITIAL_STATE.page);
+  const [loading, setLoading] = useState(INITIAL_STATE.loading);
+  const [info, setInfo] = useState(INITIAL_STATE.info);
+  const [error, setError] = useState(INITIAL_STATE.error);
+  const [more, setMore] = useState(INITIAL_STATE.more);
+  const [modal, setModal] = useState(INITIAL_STATE.modal);
+  const [image, setImage] = useState(INITIAL_STATE.image);
+  const [tags, setTags] = useState(INITIAL_STATE.tags);
+
+  const initialNewQuery = () => {
+    console.log("initialNewQuery is running...");
+    setQuery(INITIAL_STATE.query);
+    setImages(INITIAL_STATE.image);
+    setPage(INITIAL_STATE.page);
+    setLoading(INITIAL_STATE.loading);
+    setInfo(INITIAL_STATE.info);
+    setError(INITIAL_STATE.error);
   };
 
   const handleSubmit = (event) => {
+    console.log('handleSubmit is running...')
     event.preventDefault();
-    setNewQuery();
+    initialNewQuery();
     const words = event.target.keywords.value;
     if (words.trim() === "") {
-      setState({ error: "Please enter what you are looking for!" });
+      setError("Please enter what you are looking for!");
       return;
     }
     const query = words.split(" ").join("+");
-    setState({
-      query: query,
-    });
+    console.log('handleSubmit - query: ', query);
+    setQuery(query);
     event.target.reset();
   };
 
-  async loadImages(query, page) {
+  const loadImages = (query, page) => {
+    console.log('loadImages is running...');
     try {
-      await fetchImages(query, page).then((result) => {
-        // console.log("result: ", result);
+      fetchImages(query, page)
+      .then((result) => {
+        console.log("result: ", result);
         const total = result.totalHits;
         const images = result.hits;
         images.map(({ id, webformatURL, tags, largeImageURL }) => {
           id, webformatURL, tags, largeImageURL;
         });
         if (images.length === 0) {
-          setState({ more: false });
-          setState({
-            error: `Sorry, there are no images matching '${state.query}'. Please try again.`,
-          });
+          setMore(false);
+          setError(`Sorry, there are no images matching '${query}'. Please try again.`);
           return;
         }
-        setState((prevState) => ({
-          images: [...prevState.images, ...images],
-          info: `Hurray! We founded ${total} images matching '${state.query}'.`,
-        }));
-        total > state.page * 12
-          ? setState({ more: true })
-          : setState({ more: false });
+        setImages((prevImages) => ([...prevImages, ...images]));
+        setInfo(`Hurray! We founded ${total} images matching '${query}'.`);
+        total > page * 12
+          ? setMore(true)
+          : setMore(false);
       });
     } catch (error) {
-      // console.log(error);
-      setState({
-        error: "Sorry, something went wrong, please try again later",
-      });
+      setError("Sorry, something went wrong, please try again later");
     } finally {
-      setState({ loading: false });
+      setLoading(false);
     }
   }
 
   const handleMore = () => {
-    setState((prevState) => ({
-      page: prevState.page + 1,
-    }));
+    console.log("handleMore is running...");
+    setPage(prevPage => prevPage + 1);
   };
 
   const handleModal = (event) => {
+    console.log("handleModal is running...");
     // event.preventDefault();
-    if (!state.modal) {
+    if (!modal) {
       const large = event.target.getAttribute("data-large");
       const tags = event.target.alt;
-      // console.log("large: ", large);
-      // console.log("tags: ", tags);
-      setState({
-        modal: true,
-        image: large,
-        tags: tags,
-      });
+      setModal(true);
+      setImage(large);
+      setTags(tags);
     } else {
-      setState({
-        modal: false,
-        image: INITIAL_STATE.image,
-        tags: INITIAL_STATE.tags,
-      });
+      setModal(false);
+      setImage(INITIAL_STATE.image);
+      setTags(INITIAL_STATE.tags);
     }
   };
 
-  const useEffect() {
-
-  }
+  useEffect(
+    () => {
+      if (!query) return;
+      console.log("useEffect is running...");
+      setLoading(true);
+      console.log('useEffect - query / page: ', query, ' / ', page);
+      loadImages(query, page);
+    },
+    [query, page]
+  )
 
   // componentDidUpdate(prevProps, prevState) {
   //   if (
@@ -112,24 +119,30 @@ function App() {
   //   }
   // }
 
+  console.log('query: ', query);
+  console.log('images: ', images);
+  console.log('page: ', page);
+  console.log('loading: ', loading);
+
   return (
     <>
       <div className={css.App}>
         <Searchbar onSubmit={handleSubmit}></Searchbar>
-        {/* {console.log("state: ", state)} */}
-        {state.loading && <Loader />}
-        {state.error && <p className={css.text}>{state.error}</p>}
-        {state.info && <p className={css.text}>{state.info}</p>}
-        {!state.error && state.images.length > 0 && (
+        {loading && <Loader />}
+        {error && <p className={css.text}>{error}</p>}
+        {info && <p className={css.text}>{info}</p>}
+        {!error && images.length > 0 && (
           <ImageGallery
-            images={state.images}
-            onClick={handleModal}></ImageGallery>
+            images={images}
+            onClick={handleModal}
+          >
+            </ImageGallery>
         )}
-        {state.more && <Button onClick={handleMore} />}
-        {state.modal && (
+        {more && <Button onClick={handleMore} />}
+        {modal && (
           <Modal
-            image={state.image}
-            tags={state.tags}
+            image={image}
+            tags={tags}
             onClick={handleModal}
           />
         )}

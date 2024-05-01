@@ -1,4 +1,4 @@
-import css from "./searchbar.module.css";
+import css from "./Searchbar.module.css";
 import PropTypes from 'prop-types';
 
 export const Searchbar = ({ onSubmit }) => {

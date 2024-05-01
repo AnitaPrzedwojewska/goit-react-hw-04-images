@@ -1,4 +1,4 @@
-import css from './imageGallery.module.css';
+import css from './ImageGallery.module.css';
 import PropTypes from 'prop-types';
 
 export const ImageGallery = ({ images, onClick }) => {
@@ -11,6 +11,7 @@ export const ImageGallery = ({ images, onClick }) => {
           return (
             <li key={image.id} className='ImageGalleryItem'>
               <img
+                className={css.ImageGalleryItemImage}
                 src={image.webformatURL}
                 alt={image.tags}
                 data-large={image.largeImageURL}

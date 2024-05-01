@@ -1,4 +1,4 @@
-import css from "./modal.module.css";
+import css from "./Modal.module.css";
 import PropTypes from 'prop-types';
 
 export const Modal = ({ image, tags, onClick }) => {
@@ -7,7 +7,7 @@ export const Modal = ({ image, tags, onClick }) => {
   return (
     <div className={css.Overlay} onClick={onClick}>
       <div className={css.Modal}>
-        <img src={image} alt={tags} />
+        <img className={css.ModalImage} src={image} alt={tags} />
       </div>
     </div>
   );
