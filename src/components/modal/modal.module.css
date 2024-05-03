@@ -11,6 +11,18 @@
   z-index: 1200;
 }
 
+/* .ModalImage {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: block;
+  max-width: calc(90vw - 48px);
+  min-height: calc(90vh - 24px);
+  margin: auto;
+} */
+
 .Modal {
   max-width: calc(100vw - 48px);
   max-height: calc(100vh - 24px);
@@ -19,5 +31,5 @@
 .ModalImage {
   max-width: 100%;
   max-height: 100%;
-
+  /* object-fit: contain; */
 }

@@ -1,6 +1,5 @@
 import css from "./App.module.css";
-import { useState } from 'react';
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { INITIAL_STATE } from "./constants/initial-image-finder";
 import { Searchbar } from "./components/Searchbar/Searchbar";
 import { Loader } from "./components/Loader/Loader";
@@ -10,8 +9,6 @@ import { Button } from "./components/Button/Button";
 import { Modal } from "./components/Modal/Modal";
 
 function App() {
-  console.log('App is running...');
-
   const [query, setQuery] = useState(INITIAL_STATE.query);
   const [images, setImages] = useState(INITIAL_STATE.images);
   const [page, setPage] = useState(INITIAL_STATE.page);
@@ -24,7 +21,6 @@ function App() {
   const [tags, setTags] = useState(INITIAL_STATE.tags);
 
   const initialNewQuery = () => {
-    console.log("initialNewQuery is running...");
     setQuery(INITIAL_STATE.query);
     setImages(INITIAL_STATE.image);
     setPage(INITIAL_STATE.page);
@@ -33,8 +29,7 @@ function App() {
     setError(INITIAL_STATE.error);
   };
 
-  const handleSubmit = (event) => {
-    console.log('handleSubmit is running...')
+  const handleSubmitQuery = (event) => {
     event.preventDefault();
     initialNewQuery();
     const words = event.target.keywords.value;
@@ -43,17 +38,14 @@ function App() {
       return;
     }
     const query = words.split(" ").join("+");
-    console.log('handleSubmit - query: ', query);
     setQuery(query);
     event.target.reset();
   };
 
   const loadImages = (query, page) => {
-    console.log('loadImages is running...');
     try {
       fetchImages(query, page)
       .then((result) => {
-        console.log("result: ", result);
         const total = result.totalHits;
         const images = result.hits;
         images.map(({ id, webformatURL, tags, largeImageURL }) => {
@@ -71,79 +63,57 @@ function App() {
           : setMore(false);
       });
     } catch (error) {
-      setError("Sorry, something went wrong, please try again later");
+      setError("Sorry, something went wrong, please try again later.");
     } finally {
       setLoading(false);
     }
   }
 
-  const handleMore = () => {
-    console.log("handleMore is running...");
+  const handleClickMore = () => {
     setPage(prevPage => prevPage + 1);
   };
 
-  const handleModal = (event) => {
-    console.log("handleModal is running...");
-    // event.preventDefault();
-    if (!modal) {
-      const large = event.target.getAttribute("data-large");
-      const tags = event.target.alt;
-      setModal(true);
-      setImage(large);
-      setTags(tags);
-    } else {
-      setModal(false);
-      setImage(INITIAL_STATE.image);
-      setTags(INITIAL_STATE.tags);
-    }
+  const handleShowModal = (event) => {
+    const large = event.target.getAttribute("data-large");
+    const tags = event.target.alt;
+    setModal(true);
+    setImage(large);
+    setTags(tags);
+  };
+
+  const handleCloseModal = () => {
+    setModal(false);
+    setImage(INITIAL_STATE.image);
+    setTags(INITIAL_STATE.tags);
   };
 
   useEffect(
     () => {
       if (!query) return;
-      console.log("useEffect is running...");
       setLoading(true);
-      console.log('useEffect - query / page: ', query, ' / ', page);
       loadImages(query, page);
     },
     [query, page]
   )
 
-  // componentDidUpdate(prevProps, prevState) {
-  //   if (
-  //     state.page !== prevState.page ||
-  //     state.query !== prevState.query
-  //   ) {
-  //     setState({ loading: true });
-  //     loadImages(state.query, state.page);
-  //   }
-  // }
-
-  console.log('query: ', query);
-  console.log('images: ', images);
-  console.log('page: ', page);
-  console.log('loading: ', loading);
-
   return (
     <>
       <div className={css.App}>
-        <Searchbar onSubmit={handleSubmit}></Searchbar>
+        <Searchbar onSubmit={handleSubmitQuery}></Searchbar>
         {loading && <Loader />}
         {error && <p className={css.text}>{error}</p>}
         {info && <p className={css.text}>{info}</p>}
         {!error && images.length > 0 && (
           <ImageGallery
             images={images}
-            onClick={handleModal}
-          >
-            </ImageGallery>
+            onClick={handleShowModal}></ImageGallery>
         )}
-        {more && <Button onClick={handleMore} />}
+        {more && <Button onClick={handleClickMore} />}
         {modal && (
           <Modal
             image={image}
             tags={tags}
-            onClick={handleModal}
+            onCloseModal={handleCloseModal}
           />
         )}
       </div>
